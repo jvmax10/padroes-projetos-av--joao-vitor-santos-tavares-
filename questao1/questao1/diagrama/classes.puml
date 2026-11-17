@@ -1,0 +1,51 @@
+@startuml
+skinparam classAttributeIconSize 0
+interface Recurso { +id(): String\n+provedor(): String }
+interface MaquinaVirtual { +custoHora(): BigDecimal }
+interface Armazenamento { +custoGb(): BigDecimal }
+interface Fila { +custoFixo(): BigDecimal }
+Recurso <|-- MaquinaVirtual
+Recurso <|-- Armazenamento
+Recurso <|-- Fila
+MaquinaVirtual <|.. AwsVm
+MaquinaVirtual <|.. AzureVm
+Armazenamento <|.. AwsStorage
+Armazenamento <|.. AzureStorage
+Fila <|.. AwsQueue
+Fila <|.. AzureQueue
+interface FabricaNuvem <<AbstractFactory>> {
++provedor(): String
++criarVm(): MaquinaVirtual
++criarArmazenamento(): Armazenamento
++criarFila(): Fila
++custoHoraVm(): BigDecimal
++custoGb(): BigDecimal
++custoFila(): BigDecimal
+}
+FabricaNuvem <|.. FabricaAws
+FabricaNuvem <|.. FabricaAzure
+FabricaAws ..> AwsVm : creates
+FabricaAws ..> AwsStorage : creates
+FabricaAws ..> AwsQueue : creates
+FabricaAzure ..> AzureVm : creates
+FabricaAzure ..> AzureStorage : creates
+FabricaAzure ..> AzureQueue : creates
+class Provisionador <<Client>> { +provisionar(s: Solicitacao): Ambiente }
+Provisionador --> FabricaNuvem
+Provisionador ..> Configuracao
+Provisionador ..> Auditoria
+Provisionador ..> Solicitacao
+Provisionador ..> Ambiente
+class Configuracao <<Singleton>> { -regiao: String\n-orcamento: BigDecimal\n+getInstance(): Configuracao }
+class Auditoria <<Singleton, thread-safe>> { -registros: List<RegistroAuditoria>\n+registrar(r: RegistroAuditoria)\n+historico(): List<RegistroAuditoria> }
+Auditoria *-- "*" RegistroAuditoria
+class Solicitacao { +nome: String\n+provedor: String\n+quantidadeVm: int\n+gb: int }
+class Ambiente { +nome: String\n+provedor: String\n+regiao: String\n+custo: BigDecimal\n+imprimir() }
+Ambiente o-- "*" MaquinaVirtual
+Ambiente o-- "1" Armazenamento
+Ambiente o-- "1" Fila
+class Main
+Main ..> FabricaAws
+Main ..> FabricaAzure
+Main ..> Provisionador
+@enduml
