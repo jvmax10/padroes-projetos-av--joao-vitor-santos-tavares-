@@ -1,0 +1,37 @@
+@startuml
+skinparam classAttributeIconSize 0
+interface ObservadorLance <<Observer>> { +atualizar(lote: Lote, lance: Lance) }
+ObservadorLance <|.. Participante
+ObservadorLance <|.. PainelLeiloeiro
+ObservadorLance <|.. AuditorLances
+class Lote <<Subject, Strategy Context>> { -observadores: List<ObservadorLance>\n-comissao: EstrategiaComissao\n+acompanhar(o)\n+deixarDeAcompanhar(o)\n+ofertar(p, valor): boolean\n+trocarComissao(e)\n+encerrar(): Venda }
+Lote o-- "*" ObservadorLance
+Lote --> EstrategiaComissao
+Lote *-- "*" Lance
+Lote ..> Venda
+class Lance { +participante: String\n+valor: BigDecimal\n+dataHora: LocalDateTime }
+interface EstrategiaComissao <<Strategy>> { +calcular(venda): BigDecimal\n+descricao(): String }
+EstrategiaComissao <|.. ComissaoArte
+EstrategiaComissao <|.. ComissaoVeiculos
+EstrategiaComissao <|.. ComissaoImoveis
+EstrategiaComissao <|.. ComissaoEletronicos
+class Venda { +lote: String\n+valor: BigDecimal\n+comissao: BigDecimal\n+imprimirAcerto() }
+interface Fatura <<Component>> { +total(): BigDecimal\n+imprimirItens() }
+Fatura <|.. FaturaBase
+FaturaBase --> Venda
+abstract class ServicoDecorator <<Decorator>> { #base: Fatura\n#descricao(): String\n#custo(): BigDecimal }
+Fatura <|.. ServicoDecorator
+ServicoDecorator o--> Fatura
+ServicoDecorator <|-- SeguroTransporte
+ServicoDecorator <|-- CertificadoAutenticidade
+ServicoDecorator <|-- EmbalagemEspecial
+ServicoDecorator <|-- EntregaExpressa
+class Dinheiro <<Utility>>
+class Main
+Main ..> Lote
+Main ..> Participante
+Main ..> PainelLeiloeiro
+Main ..> AuditorLances
+Main ..> Fatura
+Main ..> Dinheiro
+@enduml
